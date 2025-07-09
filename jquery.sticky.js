@@ -422,3 +422,214 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// سكريبت لعمل سلايدر على الهاتف
+document.addEventListener('DOMContentLoaded', function() {
+    const testimonials = document.querySelectorAll('.testimonial-card');
+    const controlBtns = document.querySelectorAll('.control-btn');
+    
+    function updateSlider() {
+        if (window.innerWidth < 768) {
+            // في حالة الهاتف: تحويل لعرض شريحة واحدة
+            document.querySelector('.testimonials-grid').style.gridTemplateColumns = '1fr';
+            document.querySelector('.testimonials-grid').style.overflowX = 'hidden';
+            document.querySelector('.testimonials-grid').style.scrollBehavior = 'smooth';
+            
+            let currentIndex = 0;
+            
+            function showTestimonial(index) {
+                testimonials.forEach((testimonial, i) => {
+                    testimonial.style.display = i === index ? 'block' : 'none';
+                    controlBtns[i].style.background = i === index ? 'white' : 'rgba(255,255,255,0.3)';
+                });
+            }
+            
+            controlBtns.forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    currentIndex = index;
+                    showTestimonial(currentIndex);
+                });
+            });
+            
+            // تبديل تلقائي كل 5 ثواني (اختياري)
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % testimonials.length;
+                showTestimonial(currentIndex);
+            }, 5000);
+            
+            // عرض أول رأي عند التحميل
+            showTestimonial(0);
+        } else {
+            // في حالة الكمبيوتر: عرض كل الآراء معاً
+            testimonials.forEach(testimonial => {
+                testimonial.style.display = 'block';
+            });
+        }
+    }
+    
+
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('orderForm');
+    const steps = document.querySelectorAll('.form-step');
+    const nextBtn = document.querySelector('.next-btn');
+    const prevBtn = document.querySelector('.prev-btn');
+    const submitContainer = document.querySelector('.submit-container');
+    const whatsappBtn = document.getElementById('whatsappOrder');
+    let currentStep = 1;
+
+    // تحديث حالة الخطوات
+    function updateFormSteps() {
+        steps.forEach((step, index) => {
+            if (index + 1 === currentStep) {
+                step.style.display = 'block';
+            } else {
+                step.style.display = 'none';
+            }
+        });
+
+        // إظهار/إخفاء أزرار السابق والتالي
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+        nextBtn.style.display = currentStep === steps.length ? 'none' : 'block';
+        submitContainer.style.display = currentStep === steps.length ? 'block' : 'none';
+    }
+
+    // التالي
+    nextBtn.addEventListener('click', function() {
+        if (currentStep < steps.length) {
+            currentStep++;
+            updateFormSteps();
+        }
+    });
+
+    // السابق
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateFormSteps();
+        }
+    });
+
+    // تأثير اختيار الخيارات
+    document.querySelectorAll('.option-label').forEach(label => {
+        label.addEventListener('click', function() {
+            const container = this.closest('.option-container');
+            const radioInput = container.querySelector('input[type="radio"]');
+            radioInput.checked = true;
+            
+            // تحديث ألوان الخيارات
+            document.querySelectorAll('.option-label').forEach(l => {
+                const parentContainer = l.closest('.option-container');
+                const parentInput = parentContainer.querySelector('input[type="radio"]');
+                if (parentInput.checked) {
+                    l.style.background = '#0a1835';
+                    l.style.color = 'white';
+                } else {
+                    l.style.background = 'white';
+                    l.style.color = '#0a1835';
+                }
+            });
+        });
+    });
+
+    // إرسال الطلب عبر واتساب
+    whatsappBtn.addEventListener('click', function() {
+        const printSides = document.querySelector('input[name="printSides"]:checked')?.value === 'one' ? 'وجه واحد' : 'وجهين';
+        const copies = document.getElementById('copies').value || '1';
+        const paperSize = document.getElementById('paperSize').value;
+        const binding = document.querySelector('input[name="binding"]:checked')?.value || 'غير محدد';
+        const phone = document.getElementById('phone').value || 'غير محدد';
+        const notes = document.getElementById('notes').value || 'لا يوجد';
+        const address = document.getElementById('address').value || 'غير محدد';
+        const fileName = document.getElementById('fileUpload').files[0]?.name || 'لم يتم رفع ملف';
+        
+        // التحقق من إدخال رقم الهاتف
+        if (!phone || phone === 'غير محدد') {
+            alert('الرجاء إدخال رقم الهاتف للتواصل');
+            return;
+        }
+        
+        let bindingText = '';
+        switch(binding) {
+            case 'cutting': bindingText = 'تكعيب'; break;
+            case 'binding': bindingText = 'تجليد'; break;
+            case 'stapling': bindingText = 'تدبيس'; break;
+            case 'none': bindingText = 'بدون تغليف'; break;
+            default: bindingText = 'غير محدد';
+        }
+
+        const message = `*طلب طباعة*%0A%0A` +
+                        `*رقم العميل:* ${phone}%0A` +
+                        `*عدد الأوجه:* ${printSides}%0A` +
+                        `*عدد النسخ:* ${copies}%0A` +
+                        `*حجم الورق:* ${paperSize}%0A` +
+                        `*نوع التغليف:* ${bindingText}%0A` +
+                        `*اسم الملف:* ${fileName}%0A` +
+                        `*ملاحظات:* ${notes}%0A` +
+                        `*العنوان:* ${address}`;
+
+        // إنشاء رابط واتساب بدون فتح المحادثة
+        const whatsappUrl = `https://wa.me/201557686274?text=${message}`;
+        
+        // إنشاء عنصر a مخفي لتنزيل الرسالة
+        const link = document.createElement('a');
+        link.href = whatsappUrl;
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // إظهار رسالة تأكيد
+        alert('تم إرسال طلبك بنجاح، سيتم التواصل معك قريباً عبر واتساب على الرقم: ' + phone);
+        
+        // إعادة تعيين النموذج
+        form.reset();
+        currentStep = 1;
+        updateFormSteps();
+        
+        // إعادة تعيين ألوان الخيارات
+        document.querySelectorAll('.option-label').forEach(l => {
+            l.style.background = 'white';
+            l.style.color = '#0a1835';
+        });
+        document.querySelector('label[for="oneSide"]').style.background = '#0a1835';
+        document.querySelector('label[for="oneSide"]').style.color = 'white';
+        document.querySelector('label[for="stapling"]').style.background = '#0a1835';
+        document.querySelector('label[for="stapling"]').style.color = 'white';
+    });
+
+    // التمرير لأعلى عند تغيير الخطوة
+    window.addEventListener('resize', function() {
+        if (window.innerWidth < 768) {
+            window.scrollTo({
+                top: form.offsetTop - 50,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+document.getElementById('quickOrderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('qName').value;
+    const phone = document.getElementById('qPhone').value;
+    const service = document.getElementById('qService').value;
+    const notes = document.getElementById('qNotes').value || 'لا يوجد';
+    
+    const message = `*طلب خدمة طباعة جديد*%0A%0A` +
+                    `*الاسم:* ${name}%0A` +
+                    `*رقم الهاتف:* ${phone}%0A` +
+                    `*نوع الخدمة:* ${service}%0A` +
+                    `*ملاحظات:* ${notes}`;
+    
+    const whatsappUrl = `https://wa.me/20123456789?text=${message}`;
+    
+    // إرسال الطلب عبر واتساب بدون فتح نافذة جديدة
+    window.open(whatsappUrl, '_blank');
+    
+    // رسالة تأكيد للمستخدم
+    alert(`شكراً ${name}، تم استلام طلبك بنجاح وسنتواصل معك قريباً على الرقم ${phone}`);
+    
+    // إعادة تعيين النموذج
+    this.reset();
+});
